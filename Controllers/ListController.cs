@@ -75,7 +75,29 @@ namespace InterviewTest.Controllers
             }
         }
 
+        [HttpGet]
+        public int Sum()
+        {
+            int sum = 0;
 
+            var connectionStringBuilder = new SqliteConnectionStringBuilder() { DataSource = "./SqliteDB.db" };
+            using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+            {
+                connection.Open();
+
+                var queryCmd = connection.CreateCommand();
+                queryCmd.CommandText = @"SELECT  SUM(Value) FROM Employees WHERE Name like 'A%' OR Name like 'a%' OR Name like 'B%' OR Name like 'b%' OR Name like 'C%' OR Name like 'c%'";
+                using (var reader = queryCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        sum = reader.GetInt32(0);
+                    }
+                }
+            }
+
+            return sum;
+        }
         /*
          * List API methods goe here
          * */

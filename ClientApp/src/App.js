@@ -6,7 +6,8 @@ export default class App extends Component {
         this.state = {
             employees: [],
             name: "",
-            value: 0
+            value: 0,
+            sum:0
         };
     }
 
@@ -40,9 +41,18 @@ export default class App extends Component {
             return data;
         }).then(update => {
             console.log(update);
+            fetch("List")
+                .then((response) => {
+                    return response.json()
+                })
+                .then((sum) => {
+                    this.setState({ sum: sum })
+                });
         }).catch(e => {
             console.log(e);
         });
+
+        
     }
 
     handleEmployeeChanged(i, event) {
@@ -75,31 +85,41 @@ export default class App extends Component {
         
         var employee = { name: this.state.name, value: this.state.value };
         var employees = this.state.employees;
+        if (employee.name != "") {
 
-        employees.push(employee);
 
-        const options = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(employee),
-        };
+            employees.push(employee);
 
-        fetch("List/addEmployee", options).then(data => {
-            if (!data.ok) {
-                throw Error(data.status);
-            }
-            return data;
-        }).then(update => {
-            console.log(update);
-        }).catch(e => {
-            console.log(e);
-        });
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(employee),
+            };
 
-        this.setState({
-            employees: employees
-        });
+            fetch("List/addEmployee", options).then(data => {
+                if (!data.ok) {
+                    throw Error(data.status);
+                }
+                return data;
+            }).then(update => {
+                console.log(update);
+                fetch("List")
+                    .then((response) => {
+                        return response.json()
+                    })
+                    .then((sum) => {
+                        this.setState({ sum: sum })
+                    });
+            }).catch(e => {
+                console.log(e);
+            });
+
+            this.setState({
+                employees: employees
+            });
+        }
     }
 
     componentDidMount() {
@@ -109,7 +129,15 @@ export default class App extends Component {
             })
             .then((employees) => {
                 this.setState({ employees: employees })
+            });
+
+        fetch("List")
+            .then((response) => {
+                return response.json()
             })
+            .then((sum) => {
+                this.setState({ sum: sum })
+            });
         
     }
 
@@ -119,18 +147,26 @@ export default class App extends Component {
         return this.state.employees.map((emp, i) => (
                 <tr key={i}>
                 <td>{i + 1}</td>
-                <td><input name="name" type="text" value={emp.name} onChange={context.handleEmployeeChanged.bind(context, i)} onBlur={context.postEmployeesList.bind(this)} /></td>
-                <td><input name="value" type="number" value={emp.value} onChange={context.handleEmployeeChanged.bind(context, i)} onBlur={context.postEmployeesList.bind(this)} /></td>
+                <td><input name="name" type="text" value={emp.name} onChange={context.handleEmployeeChanged.bind(context, i)} onBlur={context.postEmployeesList.bind(this)} required /></td>
+                <td><input name="value" type="number" value={emp.value} onChange={context.handleEmployeeChanged.bind(context, i)} onBlur={context.postEmployeesList.bind(this)} required /></td>
                 <td><button onClick={context.handleEmployeeDelete.bind(context, i)} >Delete</button></td>
                 </tr>
             ))
         
     }
 
+    renderSum() {
+        var context = this;
+
+        return <h3> {this.state.sum} </h3>
+    }
+
     render() {
     return (
         <div>
+            <h2>sum of all Values for all Names that begin with A, B or C</h2>
             <h2>Employees Data</h2>
+            {this.renderSum()}
             <table>
                 <thead>
                     <tr>
