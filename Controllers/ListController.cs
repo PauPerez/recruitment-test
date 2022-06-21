@@ -14,8 +14,25 @@ namespace InterviewTest.Controllers
         {
         }
 
-        [HttpPost]
-        public void Post([FromBody]Employee employee)
+        public void DeleteEmployees()
+        {
+            var connectionStringBuilder = new SqliteConnectionStringBuilder() { DataSource = "./SqliteDB.db" };
+            using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+            {
+                connection.Open();
+
+                using (var transaction = connection.BeginTransaction())
+                {
+                    var insertCmd = connection.CreateCommand();
+                    insertCmd.CommandText = @"DELETE FROM Employees;";
+                    insertCmd.ExecuteNonQuery();
+                    transaction.Commit();
+                }
+            }
+        }
+
+        [HttpPost("[action]")]
+        public void addEmployee([FromBody]Employee employee)
         {
             var connectionStringBuilder = new SqliteConnectionStringBuilder() { DataSource = "./SqliteDB.db" };
             using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
@@ -31,6 +48,34 @@ namespace InterviewTest.Controllers
                 }
             }
         }
+
+        [HttpPost("[action]")]
+        public void ApplyChanges([FromBody] List<Employee> employees)
+        {
+            DeleteEmployees();
+            var connectionStringBuilder = new SqliteConnectionStringBuilder() { DataSource = "./SqliteDB.db" };
+            using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+            {
+                connection.Open();
+
+                using (var transaction = connection.BeginTransaction())
+                {
+
+                    var insertCmd = connection.CreateCommand();
+                    insertCmd.CommandText = @"INSERT INTO Employees VALUES ";
+                    foreach (var employee in employees)
+                    {
+                        insertCmd.CommandText += "('" + employee.Name + "', " + employee.Value + "),";
+                    }
+                    insertCmd.CommandText = insertCmd.CommandText.Remove(insertCmd.CommandText.Length-1);
+                    insertCmd.CommandText += ";";
+                    insertCmd.ExecuteNonQuery();
+                    transaction.Commit();
+                }
+            }
+        }
+
+
         /*
          * List API methods goe here
          * */

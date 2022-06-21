@@ -22,6 +22,55 @@ export default class App extends Component {
         }
     }
 
+    postEmployeesList() {
+        var employees = this.state.employees;
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(employees),
+        };
+
+        fetch("List/ApplyChanges", options).then(data => {
+            if (!data.ok) {
+                throw Error(data.status);
+            }
+            return data;
+        }).then(update => {
+            console.log(update);
+        }).catch(e => {
+            console.log(e);
+        });
+    }
+
+    handleEmployeeChanged(i, event) {
+        var employees = this.state.employees;
+
+        if (event.target.name === "name") {
+            employees[i].name = event.target.value;
+        } else {
+            employees[i].value = event.target.value;
+        }
+
+        this.setState({
+            employees: employees
+        });
+    }
+
+    handleEmployeeDelete(i) {
+        var employees = this.state.employees;
+
+        employees.splice(i, 1);
+
+        this.setState({
+            employees: employees
+        });
+
+        this.postEmployeesList();
+    }
+
     handleClick() {
         
         var employee = { name: this.state.name, value: this.state.value };
@@ -37,7 +86,7 @@ export default class App extends Component {
             body: JSON.stringify(employee),
         };
 
-        fetch("List", options).then(data => {
+        fetch("List/addEmployee", options).then(data => {
             if (!data.ok) {
                 throw Error(data.status);
             }
@@ -65,12 +114,14 @@ export default class App extends Component {
     }
 
     renderRows() {
+        var context = this;
+
         return this.state.employees.map((emp, i) => (
                 <tr key={i}>
                 <td>{i + 1}</td>
-                <td><input name="name" type="text" value={ emp.name }/></td>
-                <td><input name="value" type="number" value={ emp.value }/></td>
-                <td><button>Delete</button><button>Edit</button></td>
+                <td><input name="name" type="text" value={emp.name} onChange={context.handleEmployeeChanged.bind(context, i)} onBlur={context.postEmployeesList.bind(this)} /></td>
+                <td><input name="value" type="number" value={emp.value} onChange={context.handleEmployeeChanged.bind(context, i)} onBlur={context.postEmployeesList.bind(this)} /></td>
+                <td><button onClick={context.handleEmployeeDelete.bind(context, i)} >Delete</button></td>
                 </tr>
             ))
         
